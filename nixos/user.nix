@@ -8,7 +8,7 @@
         "networkmanager"
         "input"
         "wheel"
-        "podman"
+        "docker"
       ];
       packages = [ ];
     };

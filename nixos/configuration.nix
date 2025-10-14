@@ -18,7 +18,7 @@
     ./xdg.nix
     ./fonts.nix
     ./bluetooth.nix
-    ./podman.nix
+    ./docker.nix
     ./firewall.nix
     ./udev.nix
     ./nix-ld.nix
