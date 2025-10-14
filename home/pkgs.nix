@@ -27,6 +27,7 @@
     spotify
     btop
     upscayl
+    rclone
 
     # dev
     nil
