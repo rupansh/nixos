@@ -1,0 +1,263 @@
+{
+  programs.waybar.style = ''
+    /*------------Defining Colors---------------*/
+    @define-color background 	#272e33;
+    @define-color background-alt 	#414b50;
+    @define-color foreground 	#d3c6aa; 
+    @define-color foreground-alt 	#272e33;
+    @define-color red 		#e67e80;
+    @define-color green 		#a7c080;
+    @define-color yellow 		#dbbc7f;
+    @define-color blue 		#7fbbb3;
+    @define-color magenta 		#d699b6;
+    @define-color cyan 		#83c092;
+
+
+    /*------------Global Properties-----------------*/
+    * {
+        border: none;
+        border-radius: 0px;
+        font-family: "JetbrainsMono Nerd Font Propo";
+        font-style: italic;
+        font-size: 14px;
+        min-height: 0;
+    }
+
+    /*------------Window--------------------*/
+    #window{
+        background: @background;
+        padding-left: 15px;
+        padding-right: 15px;
+        border-radius: 16px;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    /*----------Waybar Window------------*/
+    window#waybar {
+        background: alpha(@background, 0.5);
+    }
+
+    /*-----------Tooltip--------------*/
+    tooltip {
+      background: @background;
+      border: 2px solid @blue;
+      border-radius: 12px;
+    }
+    tooltip label {
+      color: @foreground;
+      padding: 6px;
+    }
+
+    /*---------Workspaces-----------------*/
+    #workspaces {
+        background: @background;
+        margin: 5px 5px;
+        padding: 8px 5px;
+        border-radius: 16px;
+        color: @foreground;
+    }
+    #workspaces button {
+        font-weight: bold;
+        padding: 0px 5px;
+        margin: 0px 3px;
+        border-radius: 16px;
+        color: transparent;
+        background: @background-alt;
+        transition: all 0.3s ease-in-out;
+    }
+
+    #workspaces button.active {
+        font-weight: bold;
+        background-color: @cyan;
+        color: @foreground-alt;
+        border-radius: 16px;
+        min-width: 50px;
+        background-size: 400% 400%;
+        transition: all 0.3s ease-in-out;
+    }
+
+    #workspaces button:hover {
+        font-weight: bold;
+        background-color: @blue;
+        color: @foreground-alt;
+        border-radius: 16px;
+        min-width: 50px;
+        background-size: 400% 400%;
+    }
+
+    #workspaces button.urgent {
+        font-weight: bold;
+        background-color: @red;
+        color: @foreground-alt;
+        border-radius: 16px;
+        min-width: 50px;
+        background-size: 400% 400%;
+        transition: all 0.3s ease-in-out;
+    }
+
+
+    /*-----------SwayNC & Weather------------*/
+    #custom-swaync, #custom-weather {
+        font-weight: bold;
+        background: @background;
+        margin: 5px; 
+        padding: 8px 16px;
+        color: @magenta;
+    }
+    #custom-weather {
+        border-radius: 24px 10px 24px 10px;
+    }
+    #custom-swaync {
+        border-radius: 10px 24px 10px 24px;
+    }
+
+    /*---------------Tray, Clock, Playerctl, Battery, Cpu, Temperature, Colorpicker, Memory, Idle_inhibitor----------------------*/
+    #tray, #pulseaudio, #network, #battery, #cpu, #temperature, #custom-colorpicker, #memory, #custom-pacman, #idle_inhibitor,
+    #custom-playerctl.backward, #custom-playerctl.play, #custom-playerctl.forward{
+        background: @background;
+        font-weight: bold;
+        margin: 5px 0px;
+    }
+    #tray, #pulseaudio, #network, #battery{
+        color: @foreground;
+        border-radius: 10px 24px 10px 24px;
+        padding: 0 20px;
+        margin-left: 7px;
+    }
+    #clock {
+        color: @blue;
+        background: @background;
+        border-radius: 0px 0px 0px 40px;
+        padding: 10px 10px 15px 25px;
+        margin-left: 7px;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    #tray menu * {
+        padding: 0px 5px;
+        transition: all .3s ease; 
+    }
+
+    #tray menu separator {
+        padding: 0px 5px;
+        transition: all .3s ease; 
+    }
+
+
+    /*-----------Playerctl-------------------*/
+    #custom-playerctl.backward, #custom-playerctl.play, #custom-playerctl.forward {
+        background: @background;
+        font-size: 22px;
+    }
+    #custom-playerctl.backward:hover, #custom-playerctl.play:hover, #custom-playerctl.forward:hover{
+        color: @foreground;
+    }
+    #custom-playerctl.backward {
+        color: @blue;
+        border-radius: 24px 0px 0px 10px;
+        padding-left: 16px;
+        margin-left: 7px;
+    }
+    #custom-playerctl.play {
+        color: @magenta;
+        padding: 0 5px;
+    }
+    #custom-playerctl.forward {
+        color: @blue;
+        border-radius: 0px 10px 24px 0px;
+        padding-right: 12px;
+        margin-right: 7px
+    }
+    #custom-playerlabel {
+        background: @background;
+        color: @foreground;
+        padding: 0 20px;
+        border-radius: 24px 10px 24px 10px;
+        margin: 5px 0;
+        font-weight: bold;
+    }
+
+    /*-----------Group--------------*/
+    #group-utility {
+        padding: 0px 5px;
+        transition: all .3s ease; 
+    }
+
+
+
+    /*-------------Launcher--------------*/
+    #custom-launcher {
+        color: @blue;
+        background: @background;
+        margin: 0px 5px 0px 0px;
+        padding: 0px 35px 0px 15px;
+        border-radius: 0px 0px 40px 0px;
+        font-size: 28px;
+    }
+
+    /*--------------Cpu, Termperature, Colorpicker, Memory, Idle_inhibitor----------------*/
+    #custom-colorpicker, #cpu, #temperature, #memory, #custom-pacman,#idle_inhibitor {
+        background: @background;
+        font-size: 16px;
+    }
+
+    #cpu {
+        color: @blue;
+    }
+
+    #memory {
+        color: @cyan;
+    }
+
+    #temperature {
+        color: @yellow;
+    }
+
+    #custom-pacman {
+        color: @magenta;
+    }
+
+    #idle_inhibitor {
+        color: @foreground;
+    }
+
+    #idle_inhibitor.activated {
+        color: @red;
+    }
+
+    #cpu {
+        border-radius: 24px 0px 0px 10px;
+        padding-left: 16px;
+        padding-right: 7px;
+        margin-left: 7px;
+    }
+
+    #temperature, #memory, #custom-pacman, #idle_inhibitor {
+        padding-left: 7px;
+        padding-right: 7px;
+    }
+
+    #custom-colorpicker {
+        border-radius: 0px 10px 24px 0px;
+        padding-right: 12px;
+        padding-left: 7px;
+        margin-right: 7px
+    }
+
+    /*---------------Expand---------------*/
+    #custom-expand {
+        background: transparent;
+        color: @foreground;
+        margin: 1px;
+        font-size: 22px;
+    }
+
+    #custom-expand:hover {
+        color: @cyan;
+    }
+  '';
+}
