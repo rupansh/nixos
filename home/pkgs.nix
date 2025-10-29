@@ -28,6 +28,9 @@
     btop
     upscayl
     rclone
+    winboat
+    freerdp
+    rustdesk
 
     # dev
     nil

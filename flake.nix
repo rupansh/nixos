@@ -27,6 +27,10 @@
     claude-code.url = "github:sadjow/claude-code-nix";
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
+    winboat = {
+        url = "github:TibixDev/winboat";
+        inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -37,6 +41,7 @@
       walker,
       nix4vscode,
       nix-index-database,
+      winboat,
       ...
     }:
     let
@@ -46,6 +51,9 @@
           inherit system;
           config.allowUnfree = true;
         };
+      };
+      overlay-winboat = final: prev: {
+        winboat = winboat.packages.${system}.winboat;
       };
     in
     {
@@ -58,6 +66,7 @@
               nixpkgs.overlays = [
                 overlay-unstable
                 nix4vscode.overlays.default
+                overlay-winboat
               ];
             }
           )

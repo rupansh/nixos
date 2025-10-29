@@ -88,6 +88,7 @@
         "$mod, D, exec, app2unit -- $menu"
         "$mod, P, pseudo,"
         "$mod, J, togglesplit,"
+        "$mod, F, fullscreen,"
         "$mod, left, movefocus, l"
         "$mod, right, movefocus, r"
         "$mod, up, movefocus, u"
