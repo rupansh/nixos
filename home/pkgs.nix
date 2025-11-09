@@ -30,7 +30,7 @@
     rclone
     winboat
     freerdp
-    rustdesk
+    moonlight-qt
 
     # dev
     nil
