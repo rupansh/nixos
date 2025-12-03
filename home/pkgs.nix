@@ -28,9 +28,8 @@
     btop
     upscayl
     rclone
-    winboat
-    freerdp
-    moonlight-qt
+    dmidecode
+    telegram-desktop
 
     # dev
     nil

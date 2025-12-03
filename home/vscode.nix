@@ -27,6 +27,7 @@
       "jnoortheen.nix-ide"
       "anthropic.claude-code"
       "pbkit.vscode-pbkit"
+      "ms-vscode-remote.remote-ssh"
     ];
   };
 }
