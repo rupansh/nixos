@@ -75,10 +75,6 @@
       touchpad.natural_scroll = false;
     };
 
-    gestures = {
-      workspace_swipe = false;
-    };
-
     bind =
       [
         "$mod, Return, exec, app2unit -- $terminal"
@@ -145,7 +141,6 @@
 
     exec-once = [
       "app2unit -- ${lib.getExe pkgs.waybar} &"
-      "app2unit -- elephant"
       "app2unit -- walker --gapplication-service"
     ];
   };

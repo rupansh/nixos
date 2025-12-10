@@ -36,4 +36,6 @@
     enable = true;
     nix-direnv.enable = true;
   };
+
+  programs.lutris.enable = true;
 }

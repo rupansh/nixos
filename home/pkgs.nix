@@ -19,7 +19,7 @@
     # utils
     protonvpn-gui
     vlc
-    stremio
+    #stremio
     unzip
     brave
     usbutils
