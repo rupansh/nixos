@@ -30,6 +30,7 @@
     rclone
     dmidecode
     telegram-desktop
+    hwloc
 
     # dev
     nil
