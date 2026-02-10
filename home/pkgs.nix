@@ -31,6 +31,7 @@
     dmidecode
     telegram-desktop
     hwloc
+    rustdesk-flutter
 
     # dev
     nil
