@@ -36,7 +36,7 @@
     # dev
     nil
     nixfmt-rfc-style
-    devenv
+    unstable.devenv
     unstable.claude-code
   ];
 }
