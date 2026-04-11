@@ -1,6 +1,7 @@
 { pkgs, lib, ... }:
 {
   programs.vscode.enable = true;
+  programs.vscode.package = pkgs.unstable.vscode;
   programs.vscode.profiles.default = {
     enableUpdateCheck = false;
     enableExtensionUpdateCheck = false;
