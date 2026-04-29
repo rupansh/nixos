@@ -4,7 +4,7 @@
 
   programs.alacritty = {
     enable = true;
-    package = pkgs.unstable.alacritty;
+    package = pkgs.alacritty;
     settings = {
       window = {
         decorations = "None";
@@ -19,6 +19,7 @@
   programs.yazi = {
     enable = true;
     enableFishIntegration = true;
+    shellWrapperName = "y";
     plugins = {
       mount = pkgs.yaziPlugins.mount;
     };
@@ -38,4 +39,9 @@
   };
 
   programs.lutris.enable = true;
+
+  programs.gh = {
+    enable = true;
+    settings.git_protocol = "ssh";
+  };
 }

@@ -8,8 +8,10 @@
     settings = {
       ipc = true;
       splash = false;
-      preload = [ "$HOME/Pictures/wallpaper.png" ];
-      wallpaper = [ ",$HOME/Pictures/wallpaper.png" ];
+      wallpaper = {
+        monitor = "";
+        path = "$HOME/Pictures/wallpaper.png";
+      };
     };
   };
 
@@ -133,8 +135,8 @@
     ];
 
     windowrule = [
-      "suppressevent maximize, class:.*"
-      "nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0"
+      "match:class .*, suppress_event maximize"
+      "match:class ^$, match:title ^$, match:xwayland 1, match:float 1, match:fullscreen 0, match:pin 0, no_focus true"
     ];
 
     xwayland.force_zero_scaling = true;

@@ -2,7 +2,7 @@
 {
   home.packages = with pkgs; [
     # DE related
-    unstable.app2unit
+    app2unit
     pass
     wl-clipboard
     vesktop
@@ -17,7 +17,7 @@
     nemo-with-extensions
 
     # utils
-    protonvpn-gui
+    proton-vpn
     vlc
     #stremio
     unzip
@@ -35,8 +35,7 @@
 
     # dev
     nil
-    nixfmt-rfc-style
-    unstable.devenv
-    unstable.claude-code
+    nixfmt
+    devenv
   ];
 }

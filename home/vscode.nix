@@ -1,7 +1,6 @@
 { pkgs, lib, ... }:
 {
   programs.vscode.enable = true;
-  programs.vscode.package = pkgs.unstable.vscode;
   programs.vscode.profiles.default = {
     enableUpdateCheck = false;
     enableExtensionUpdateCheck = false;
@@ -17,8 +16,9 @@
       "nix.enableLanguageServer" = true;
       "nix.serverPath" = "nil";
       "nix.serverSettings".nil = {
-        formatting.command = [ "${lib.getExe pkgs.nixfmt-rfc-style}" ];
+        formatting.command = [ "${lib.getExe pkgs.nixfmt}" ];
       };
+      "claudeCode.preferredLocation" = "panel";
     };
     extensions = pkgs.nix4vscode.forVscode [
       "ahmadawais.shades-of-purple"

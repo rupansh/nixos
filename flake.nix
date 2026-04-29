@@ -13,40 +13,36 @@
   };
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    walker.url = "github:abenz1267/walker";
+    walker = {
+      url = "github:abenz1267/walker";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nix4vscode = {
       url = "github:nix-community/nix4vscode";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    claude-code.url = "github:sadjow/claude-code-nix";
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
+    mcp-servers-nix.url = "github:natsukium/mcp-servers-nix";
   };
 
   outputs =
     {
       nixpkgs,
       home-manager,
-      nixpkgs-unstable,
       walker,
       nix4vscode,
       nix-index-database,
+      mcp-servers-nix,
       ...
     }:
     let
       system = "x86_64-linux";
-      overlay-unstable = final: prev: {
-        unstable = import nixpkgs-unstable {
-          inherit system;
-          config.allowUnfree = true;
-        };
-      };
     in
     {
       nixosConfigurations."nix-rupansh" = nixpkgs.lib.nixosSystem {
@@ -56,8 +52,12 @@
             { config, pkgs, ... }:
             {
               nixpkgs.overlays = [
-                overlay-unstable
                 nix4vscode.overlays.default
+                (_: prev: {
+                  openldap = prev.openldap.overrideAttrs {
+                    doCheck = !prev.stdenv.hostPlatform.isi686;
+                  };
+                })
               ];
             }
           )
@@ -70,6 +70,7 @@
               imports = [
                 walker.homeManagerModules.default
                 nix-index-database.homeModules.nix-index
+                mcp-servers-nix.homeManagerModules.default
                 ./home/bundle.nix
               ];
             };
