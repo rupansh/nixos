@@ -32,6 +32,7 @@
     telegram-desktop
     hwloc
     rustdesk-flutter
+    qbittorrent
 
     # dev
     nil
