@@ -19,7 +19,7 @@
     # utils
     proton-vpn
     vlc
-    #stremio
+    stremio-linux-shell
     unzip
     brave
     usbutils
@@ -38,5 +38,8 @@
     nil
     nixfmt
     devenv
+
+    # virt
+    gnome-boxes
   ];
 }
