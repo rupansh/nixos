@@ -23,6 +23,7 @@
     ./udev.nix
     ./nix-ld.nix
     ./ssh.nix
+    ./virtualisation.nix
   ];
 
   # Bootloader.

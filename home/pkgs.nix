@@ -41,5 +41,7 @@
 
     # virt
     gnome-boxes
+    phodav
+    ntfs3g
   ];
 }

@@ -13,4 +13,5 @@
     localNetworkGameTransfers.openFirewall = true;
   };
 
+  programs.virt-manager.enable = true;
 }
