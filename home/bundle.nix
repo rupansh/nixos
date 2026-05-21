@@ -12,6 +12,7 @@
     ./git.nix
     ./caelestia.nix
     ./spicetify.nix
+    ./obs.nix
     ./claude-code.nix
     ./mpv.nix
   ];
