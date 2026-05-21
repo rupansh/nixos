@@ -11,6 +11,7 @@
     ./vscode.nix
     ./git.nix
     ./caelestia.nix
+    ./spicetify.nix
     ./claude-code.nix
     ./mpv.nix
   ];

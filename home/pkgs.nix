@@ -22,7 +22,6 @@
     brave
     usbutils
     popsicle
-    spotify
     btop
     upscayl
     rclone

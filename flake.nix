@@ -27,6 +27,10 @@
       url = "github:caelestia-dots/shell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    spicetify-nix = {
+      url = "github:Gerg-L/spicetify-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -37,6 +41,7 @@
       nix-index-database,
       mcp-servers-nix,
       caelestia-shell,
+      spicetify-nix,
       ...
     }:
     let
@@ -70,6 +75,7 @@
                 nix-index-database.homeModules.nix-index
                 mcp-servers-nix.homeManagerModules.default
                 caelestia-shell.homeManagerModules.default
+                spicetify-nix.homeManagerModules.spicetify
                 ./home/bundle.nix
               ];
             };
