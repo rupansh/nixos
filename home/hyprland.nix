@@ -60,7 +60,6 @@
     animations.enabled = false;
 
     dwindle = {
-      pseudotile = true;
       preserve_split = true;
     };
 
@@ -85,7 +84,7 @@
         "$mod, Space, togglefloating"
         "$mod, D, exec, app2unit -- $menu"
         "$mod, P, pseudo,"
-        "$mod, J, togglesplit,"
+        "$mod, J, layoutmsg, togglesplit,"
         "$mod, F, fullscreen,"
         "$mod, left, movefocus, l"
         "$mod, right, movefocus, r"
