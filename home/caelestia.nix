@@ -29,6 +29,21 @@ let
           --replace-fail \
             "implicitWidth: layout.implicitWidth > 800 ? layout.implicitWidth : 840" \
             "implicitWidth: layout.implicitWidth > 500 ? layout.implicitWidth : 540"
+        # Brightness service calls bare `brightnessctl` which auto-picks the
+        # first sysfs backlight class — on this Intel+NVIDIA hybrid that
+        # selects the wrong device. Pin to intel_backlight. Important: keep
+        # this LINEAR (no `-e<n>`). The caelestia OSD displays the linear
+        # raw_current/raw_max ratio while writing back the slider's 0..1
+        # value as a percent. Adding `-e4` makes `s 30%` write
+        # `(0.30)^4 · max ≈ 0.8%` of max — i.e. the bar says 30% but the
+        # panel is effectively black.
+        substituteInPlace services/Brightness.qml \
+          --replace-fail \
+            '["brightnessctl", "s", `''${rounded}%`]' \
+            '["brightnessctl", "--device", "intel_backlight", "-n2", "s", `''${rounded}%`]' \
+          --replace-fail \
+            '"echo a b c $(brightnessctl g) $(brightnessctl m)"' \
+            '"echo a b c $(brightnessctl --device intel_backlight g) $(brightnessctl --device intel_backlight m)"'
       '';
     });
   # Seed the built-in `gruvbox/soft/dark` scheme — the only shipped palette
@@ -190,7 +205,11 @@ let
       audio = [ "pavucontrol" ];
       explorer = [ "nemo" ];
     };
-    services.useTwelveHourClock = false;
+    services = {
+      useTwelveHourClock = false;
+      # 5% per keypress — matches the previous `brightnessctl set 5%+` step.
+      brightnessIncrement = 0.05;
+    };
     bar.status = {
       showBattery = true;
       showBluetooth = true;

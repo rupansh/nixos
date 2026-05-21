@@ -145,12 +145,16 @@ in
           ''hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle")''
           { repeating = true; locked = true; }
         )
+        # Route through caelestia's global shortcuts so the shell updates its
+        # own Brightness.Monitor state and the OSD pops on every step.
+        # Direct `brightnessctl` invocations would change the backlight but
+        # caelestia would never observe the delta.
         (mkBindOpts "XF86MonBrightnessUp"
-          ''hl.dsp.exec_cmd("brightnessctl --device intel_backlight -e4 -n2 set 5%+")''
+          ''hl.dsp.global("caelestia:brightnessUp")''
           { repeating = true; locked = true; }
         )
         (mkBindOpts "XF86MonBrightnessDown"
-          ''hl.dsp.exec_cmd("brightnessctl --device intel_backlight -e4 -n2 set 5%-")''
+          ''hl.dsp.global("caelestia:brightnessDown")''
           { repeating = true; locked = true; }
         )
       ]
