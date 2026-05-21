@@ -150,6 +150,6 @@
   home.sessionVariables = {
     NIXOS_OZONE_WL = "1";
     HYPRCURSOR_SIZE = "24";
-    AQ_DRM_DEVICES = "/dev/dri/card1:/dev/dri/card0";
+    AQ_DRM_DEVICES = "/dev/dri/card1";
   };
 }

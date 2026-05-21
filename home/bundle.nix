@@ -14,6 +14,7 @@
     ./waybar
     ./swaync.nix
     ./claude-code.nix
+    ./mpv.nix
   ];
 
   home = {
