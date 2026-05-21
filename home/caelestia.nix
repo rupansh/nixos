@@ -44,6 +44,19 @@ let
           --replace-fail \
             '"echo a b c $(brightnessctl g) $(brightnessctl m)"' \
             '"echo a b c $(brightnessctl --device intel_backlight g) $(brightnessctl --device intel_backlight m)"'
+        # Workspace dots use the default `StyledText` font (Rubik), but the
+        # default labels are Nerd Font glyphs (e.g. 󰮯 = U+F0BAF) that only
+        # CaskaydiaCove NF carries. The bundled FONTCONFIG_FILE doesn't set
+        # up a fallback chain that reaches it for private-use glyphs, so
+        # the labels render as invisible missing-glyph boxes — leaving the
+        # bar visually empty between the logo and active-window slots.
+        # Pin the indicator's font to the mono family where the glyph
+        # actually lives.
+        substituteInPlace modules/bar/components/workspaces/Workspace.qml \
+          --replace-fail \
+            'id: indicator' \
+            'id: indicator
+        font.family: Tokens.font.family.mono'
       '';
     });
   # Seed the built-in `gruvbox/soft/dark` scheme — the only shipped palette
