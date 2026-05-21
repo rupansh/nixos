@@ -15,8 +15,6 @@
     before = [ "docker.service" ];
   };
 
-  systemd.services."home-manager-rupansh".wantedBy = lib.mkForce [ ];
-
   services.getty = {
     autologinOnce = true;
     autologinUser = "rupansh";

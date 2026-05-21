@@ -47,7 +47,7 @@ nix flake check
 - `nvidia.nix` + `intel.nix` set up PRIME offload (Intel `PCI:0:2:0`, NVIDIA `PCI:1:0:0`) and kernel params to disable NVIDIA's backlight handler so Intel `intel_backlight` controls brightness.
 - `asus.nix` runs `asusd` + `supergfxd`.
 - `modules.nix` enables top-level programs that need both system bits and user session integration: Hyprland with UWSM, Steam, virt-manager.
-- `services.nix` force-disables a couple of unit `wantedBy` defaults (`nvidia-container-toolkit-cdi-generator`, `home-manager-rupansh`) — don't drop those `mkForce []` lines without understanding why.
+- `services.nix` force-disables a couple of unit `wantedBy` defaults (`nvidia-container-toolkit-cdi-generator`) — don't drop those `mkForce []` lines without understanding why.
 - `configuration.nix` sets `environment.loginShellInit` to `uwsm start hyprland-uwsm.desktop`, so login on tty1 (autologin via `services.getty`) directly launches Hyprland under systemd user units.
 
 **`home/`** — home-manager layer for user `rupansh`. `bundle.nix` is the aggregator and also sets `home.sessionVariables` (including `APP2UNIT_SLICES`/`APP2UNIT_TYPE`, used by Hyprland binds via `app2unit`).

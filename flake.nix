@@ -3,11 +3,11 @@
 
   nixConfig = {
     extra-substituters = [
-      "https://walker-git.cachix.org"
+      "https://vicinae.cachix.org"
       "https://nix-community.cachix.org"
     ];
     extra-trusted-public-keys = [
-      "walker-git.cachix.org-1:vmC0ocfPWh0S/vRAQGtChuiZBTAe4wiKDeyyXM0/7pM="
+      "vicinae.cachix.org-1:1kDrfienkGHPYbkpNj1mWTr7Fm1+zcenzgTizIcI3oc="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
     ];
   };
@@ -18,11 +18,7 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    elephant.url = "github:abenz1267/elephant";
-    walker = {
-      url = "github:abenz1267/walker";
-      inputs.nixpkgs.follows = "elephant";
-    };
+    vicinae.url = "github:vicinaehq/vicinae";
     nix4vscode = {
       url = "github:nix-community/nix4vscode";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -36,7 +32,7 @@
     {
       nixpkgs,
       home-manager,
-      walker,
+      vicinae,
       nix4vscode,
       nix-index-database,
       mcp-servers-nix,
@@ -62,6 +58,7 @@
               ];
             }
           )
+          vicinae.nixosModules.default
           ./nixos/configuration.nix
           home-manager.nixosModules.home-manager
           {
@@ -69,9 +66,9 @@
             home-manager.useUserPackages = true;
             home-manager.users.rupansh = {
               imports = [
-                walker.homeManagerModules.default
                 nix-index-database.homeModules.nix-index
                 mcp-servers-nix.homeManagerModules.default
+                vicinae.homeManagerModules.default
                 ./home/bundle.nix
               ];
             };

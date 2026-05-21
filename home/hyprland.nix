@@ -25,7 +25,7 @@
   wayland.windowManager.hyprland.settings = {
     "$mod" = "SUPER";
     "$terminal" = "alacritty";
-    "$menu" = "walker";
+    "$menu" = "vicinae";
 
     general = {
       gaps_in = 5;
@@ -82,7 +82,7 @@
         "$mod, Q, killactive,"
         "$mod, M, exit,"
         "$mod, Space, togglefloating"
-        "$mod, D, exec, app2unit -- $menu"
+        "$mod, D, exec, $menu open"
         "$mod, P, pseudo,"
         "$mod, J, layoutmsg, togglesplit,"
         "$mod, F, fullscreen,"
@@ -142,7 +142,6 @@
 
     exec-once = [
       "app2unit -- ${lib.getExe pkgs.waybar} &"
-      "app2unit -- walker --gapplication-service"
     ];
   };
 

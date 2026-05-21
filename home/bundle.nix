@@ -9,7 +9,7 @@
     ./gpg.nix
     ./gtk-theme.nix
     ./vscode.nix
-    ./walker.nix
+    ./vicinae.nix
     ./git.nix
     ./waybar
     ./swaync.nix

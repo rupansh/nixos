@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
   programs.mpv = {
     enable = true;
@@ -104,24 +104,13 @@
 
   # Make mpv the default handler for video files so Nemo's double-click
   # / "Open" lands here without picking it from the "Open With" menu.
-  xdg.mimeApps = {
-    enable = true;
-    defaultApplications =
-      let
-        mpv = [ "mpv.desktop" ];
-      in
-      {
-        "video/mp4" = mpv;
-        "video/x-matroska" = mpv;
-        "video/webm" = mpv;
-        "video/quicktime" = mpv;
-        "video/x-msvideo" = mpv;
-        "video/x-flv" = mpv;
-        "video/mpeg" = mpv;
-        "video/3gpp" = mpv;
-        "video/x-ms-wmv" = mpv;
-        "application/vnd.apple.mpegurl" = mpv;
-        "application/x-mpegurl" = mpv;
-      };
-  };
+  # Use `xdg-mime default` rather than `xdg.mimeApps` so we append to the
+  # existing ~/.config/mimeapps.list instead of clobbering entries other
+  # tools have written.
+  home.activation.mpvMimeApps = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run ${pkgs.xdg-utils}/bin/xdg-mime default mpv.desktop \
+      video/mp4 video/x-matroska video/webm video/quicktime \
+      video/x-msvideo video/x-flv video/mpeg video/3gpp \
+      video/x-ms-wmv application/vnd.apple.mpegurl application/x-mpegurl
+  '';
 }
