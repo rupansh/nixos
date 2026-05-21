@@ -6,10 +6,8 @@
     pass
     wl-clipboard
     vesktop
-    hyprpaper
     loupe
     p7zip
-    hyprshot
     pavucontrol
     brightnessctl
     hyprprop

@@ -2,7 +2,6 @@
 let
   mod = "SUPER";
   terminal = "alacritty";
-  menu = "vicinae";
 
   lua = lib.generators.mkLuaInline;
 
@@ -27,18 +26,6 @@ in
 {
   xdg.configFile."uwsm/env".source =
     "${config.home.sessionVariablesPackage}/etc/profile.d/hm-session-vars.sh";
-
-  services.hyprpaper = {
-    enable = true;
-    settings = {
-      ipc = true;
-      splash = false;
-      wallpaper = {
-        monitor = "";
-        path = "$HOME/Pictures/wallpaper.png";
-      };
-    };
-  };
 
   wayland.windowManager.hyprland = {
     enable = true;
@@ -109,7 +96,7 @@ in
         (mkBind "${mod} + Q"      ''hl.dsp.window.close()'')
         (mkBind "${mod} + M"      ''hl.dsp.exit()'')
         (mkBind "${mod} + Space"  ''hl.dsp.window.float({ action = "toggle" })'')
-        (mkBind "${mod} + D"      ''hl.dsp.exec_cmd("${menu} open")'')
+        (mkBind "${mod} + D"      ''hl.dsp.exec_cmd("caelestia shell drawers toggle launcher")'')
         (mkBind "${mod} + P"      ''hl.dsp.window.pseudo()'')
         (mkBind "${mod} + J"      ''hl.dsp.layout("togglesplit")'')
         (mkBind "${mod} + F"      ''hl.dsp.window.fullscreen()'')
@@ -119,8 +106,12 @@ in
         (mkBind "${mod} + down"   ''hl.dsp.focus({ direction = "d" })'')
         (mkBind "${mod} + X"          ''hl.dsp.workspace.toggle_special("magic")'')
         (mkBind "${mod} + SHIFT + X"  ''hl.dsp.window.move({ workspace = "special:magic" })'')
+        # Caelestia's area picker freezes the screen on entry, so the snap
+        # reflects what was on screen at keypress time rather than what's
+        # there once you finish selecting. `openFreezeClip` = freeze + copy
+        # to clipboard only (no file/swappy editor).
         (mkBind "${mod} + SHIFT + S"
-          ''hl.dsp.exec_cmd("app2unit -- hyprshot -m region --clipboard-only")''
+          ''hl.dsp.exec_cmd("caelestia shell picker openFreezeClip")''
         )
 
         # Mouse scroll workspace switching
@@ -182,16 +173,6 @@ in
         no_focus = true;
       }
     ];
-
-    on = {
-      _args = [
-        "hyprland.start"
-        (lua ''
-          function()
-            hl.exec_cmd("app2unit -- ${lib.getExe pkgs.waybar} &")
-          end'')
-      ];
-    };
   };
 
   home.sessionVariables = {

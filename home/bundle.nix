@@ -9,10 +9,8 @@
     ./gpg.nix
     ./gtk-theme.nix
     ./vscode.nix
-    ./vicinae.nix
     ./git.nix
-    ./waybar
-    ./swaync.nix
+    ./caelestia.nix
     ./claude-code.nix
     ./mpv.nix
   ];
