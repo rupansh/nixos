@@ -2,6 +2,7 @@
 {
   imports = [
     ./hyprland.nix
+    ./refresh.nix
     ./modules.nix
     ./pkgs.nix
     ./services.nix
