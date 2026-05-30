@@ -13,6 +13,7 @@
     ./user.nix
     ./services.nix
     ./asus.nix
+    ./power.nix
     ./pkgs.nix
     ./modules.nix
     ./xdg.nix
