@@ -2,29 +2,17 @@
 let
   inherit (pkgs.stdenv.hostPlatform) system;
 
-  # Shrink the Performance and Weather tabs of the dashboard by patching the
-  # hardcoded minimum widths in modules/dashboard/*.qml. None of these
-  # numbers are exposed via shell-tokens.json — they're inline magic ints.
-  # Recheck after caelestia updates; if the matching string changes upstream
+  # Shrink the Weather tab of the dashboard by patching the hardcoded
+  # implicitWidth threshold in modules/dashboard/WeatherTab.qml — that number
+  # is still an inline magic int upstream. The Performance tab's pane sizes
+  # were also magic ints in older revisions but are now exposed as
+  # `Tokens.sizes.dashboard.perf*` properties; we override those via
+  # shell-tokens.json below instead of patching the QML. Recheck after
+  # caelestia updates; if the matching string changes upstream
   # `--replace-fail` will surface that loudly on the next rebuild.
   caelestiaShell =
     caelestia-shell.packages.${system}.with-cli.overrideAttrs (old: {
-      # Order matters: substituteInPlace runs --replace-fail left-to-right
-      # against the in-place file, so a later substitution will catch the
-      # output of an earlier one. The Layout.minimumWidth chain (Network
-      # 200→160, then Memory/Storage 250→200) is the trap — Network must
-      # land first or the new 200s from Memory/Storage get rewritten to 160.
       postPatch = (old.postPatch or "") + ''
-        substituteInPlace modules/dashboard/Performance.qml \
-          --replace-fail \
-            "minWidth: 400 + 400 + Tokens.spacing.normal + 120 + Tokens.padding.large * 2" \
-            "minWidth: 280 + 280 + Tokens.spacing.normal + 100 + Tokens.padding.large * 2" \
-          --replace-fail "Layout.minimumWidth: 400" "Layout.minimumWidth: 280" \
-          --replace-fail "Layout.minimumWidth: 200" "Layout.minimumWidth: 160" \
-          --replace-fail "Layout.minimumWidth: 250" "Layout.minimumWidth: 200" \
-          --replace-fail "Layout.preferredHeight: 150" "Layout.preferredHeight: 120" \
-          --replace-fail "Layout.preferredHeight: 220" "Layout.preferredHeight: 180" \
-          --replace-fail "Layout.preferredWidth: 120" "Layout.preferredWidth: 100"
         substituteInPlace modules/dashboard/WeatherTab.qml \
           --replace-fail \
             "implicitWidth: layout.implicitWidth > 800 ? layout.implicitWidth : 840" \
@@ -44,19 +32,6 @@ let
           --replace-fail \
             '"echo a b c $(brightnessctl g) $(brightnessctl m)"' \
             '"echo a b c $(brightnessctl --device intel_backlight g) $(brightnessctl --device intel_backlight m)"'
-        # Workspace dots use the default `StyledText` font (Rubik), but the
-        # default labels are Nerd Font glyphs (e.g. 󰮯 = U+F0BAF) that only
-        # CaskaydiaCove NF carries. The bundled FONTCONFIG_FILE doesn't set
-        # up a fallback chain that reaches it for private-use glyphs, so
-        # the labels render as invisible missing-glyph boxes — leaving the
-        # bar visually empty between the logo and active-window slots.
-        # Pin the indicator's font to the mono family where the glyph
-        # actually lives.
-        substituteInPlace modules/bar/components/workspaces/Workspace.qml \
-          --replace-fail \
-            'id: indicator' \
-            'id: indicator
-        font.family: Tokens.font.family.mono'
       '';
     });
   # Seed the built-in `gruvbox/soft/dark` scheme — the only shipped palette
@@ -204,7 +179,14 @@ let
       # popouts, launcher, etc.). Default 1.0 felt oversized at this display
       # density. 0.85 shrinks fonts, padding, and inter-element spacing
       # proportionally so the layout stays balanced.
-      font.size.scale = 0.85;
+      font.scale = 0.85;
+      # Workspace indicator labels default to Nerd Font glyphs (e.g.
+      # 󰮯 = U+F0BAF) that only CaskaydiaCove NF carries. Upstream's default
+      # `font.workspaces = "Rubik"` lacks those private-use glyphs and the
+      # bundled FONTCONFIG_FILE doesn't set up a fallback chain to reach
+      # the mono family — so the labels render as invisible missing-glyph
+      # boxes. Pin the workspaces font to the family where the glyph lives.
+      font.workspaces = "CaskaydiaCove NF";
       padding.scale = 0.85;
       spacing.scale = 0.85;
       # Scales every internal rounding token (popouts, bar segments, buttons).
@@ -255,15 +237,10 @@ let
   shellTokens = {
     sizes = {
       dashboard = {
-        # Dash tab
-        infoWidth = 100;
-        infoIconSize = 18;
         dateTimeWidth = 60;
-        resourceSize = 110;
-        # Media tab — these three drive most of the horizontal footprint:
+        # Media tab — these drive most of the horizontal footprint:
         # implicitWidth = cover + visualiser*2 + details + bongocat + padding.
         mediaCoverArtSize = 80;
-        mediaVisualiserSize = 40;
         mediaWidth = 100;
         mediaProgressSweep = 110;
         mediaProgressThickness = 5;
@@ -272,6 +249,15 @@ let
         # back up from 140 since 140 squeezed the icon+temp+description trio
         # in the Dash tab card.
         weatherWidth = 180;
+        # Performance tab pane sizes. Upstream defaults are tuned for a wider
+        # dashboard than we use; shrink the CPU/GPU/Network cards and the
+        # battery tank to match the rest of the layout.
+        perfHeroCardWidth = 280;
+        perfNetworkCardWidth = 280;
+        perfNetworkCardHeight = 180;
+        perfBattWidthSingle = 280;
+        perfBattHeight = 120;
+        perfPlaceholderWidth = 500;
       };
       launcher = {
         itemWidth = 460;
