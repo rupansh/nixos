@@ -30,6 +30,7 @@
     hwloc
     rustdesk-flutter
     qbittorrent
+    cifs-utils
 
     # dev
     nil
