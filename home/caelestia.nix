@@ -1,6 +1,43 @@
-{ lib, pkgs, caelestia-shell, ... }:
+{
+  lib,
+  pkgs,
+  caelestia-shell,
+  ...
+}:
 let
   inherit (pkgs.stdenv.hostPlatform) system;
+
+  # Hyprland drops any event-socket (socket2) client that falls 64 events
+  # behind (EventManager.cpp, "overflowed event queue, removing") — a brief
+  # GUI-thread stall in the shell is enough. Neither quickshell's HyprlandIpc
+  # nor caelestia's HyprExtras reconnect afterwards (still true on upstream
+  # master as of 2026-09), so the bar's workspaces/active window freeze until
+  # the shell restarts. Both patches reconnect after 1s and resync state.
+  # quickshell's and the plugin's derivations are let-bound inside their
+  # nix files, so overrideAttrs can't reach them: instead patch the sources
+  # and callPackage the upstream nix files ourselves, mirroring the args in
+  # caelestia-shell's flake.nix (import-from-derivation, cheap). Drop this once
+  # upstream reconnects; `patches` will fail loudly if the code moves.
+  quickshellSrc = caelestia-shell.inputs.quickshell;
+  quickshell =
+    pkgs.callPackage
+      "${
+        pkgs.applyPatches {
+          name = "quickshell-src";
+          src = quickshellSrc;
+          patches = [ ./caelestia/quickshell-hyprland-ipc-reconnect.patch ];
+        }
+      }/default.nix"
+      {
+        gitRev = quickshellSrc.rev;
+        withX11 = false;
+        withI3 = false;
+      };
+  caelestiaSrc = pkgs.applyPatches {
+    name = "caelestia-shell-src";
+    src = caelestia-shell;
+    patches = [ ./caelestia/hyprextras-reconnect.patch ];
+  };
 
   # Shrink the Weather tab of the dashboard by patching the hardcoded
   # implicitWidth threshold in modules/dashboard/WeatherTab.qml — that number
@@ -11,29 +48,37 @@ let
   # caelestia updates; if the matching string changes upstream
   # `--replace-fail` will surface that loudly on the next rebuild.
   caelestiaShell =
-    caelestia-shell.packages.${system}.with-cli.overrideAttrs (old: {
-      postPatch = (old.postPatch or "") + ''
-        substituteInPlace modules/dashboard/WeatherTab.qml \
-          --replace-fail \
-            "implicitWidth: layout.implicitWidth > 800 ? layout.implicitWidth : 840" \
-            "implicitWidth: layout.implicitWidth > 500 ? layout.implicitWidth : 540"
-        # Brightness service calls bare `brightnessctl` which auto-picks the
-        # first sysfs backlight class — on this Intel+NVIDIA hybrid that
-        # selects the wrong device. Pin to intel_backlight. Important: keep
-        # this LINEAR (no `-e<n>`). The caelestia OSD displays the linear
-        # raw_current/raw_max ratio while writing back the slider's 0..1
-        # value as a percent. Adding `-e4` makes `s 30%` write
-        # `(0.30)^4 · max ≈ 0.8%` of max — i.e. the bar says 30% but the
-        # panel is effectively black.
-        substituteInPlace services/Brightness.qml \
-          --replace-fail \
-            '["brightnessctl", "s", `''${rounded}%`]' \
-            '["brightnessctl", "--device", "intel_backlight", "-n2", "s", `''${rounded}%`]' \
-          --replace-fail \
-            '"echo a b c $(brightnessctl g) $(brightnessctl m)"' \
-            '"echo a b c $(brightnessctl --device intel_backlight g) $(brightnessctl --device intel_backlight m)"'
-      '';
-    });
+    (pkgs.callPackage "${caelestiaSrc}/nix" {
+      rev = caelestia-shell.rev or caelestia-shell.dirtyRev;
+      stdenv = pkgs.clangStdenv;
+      inherit quickshell;
+      caelestia-cli = caelestia-shell.inputs.caelestia-cli.packages.${system}.default;
+      m3shapes = caelestia-shell.inputs.m3shapes.packages.${system}.default;
+      withCli = true;
+    }).overrideAttrs
+      (old: {
+        postPatch = (old.postPatch or "") + ''
+          substituteInPlace modules/dashboard/WeatherTab.qml \
+            --replace-fail \
+              "implicitWidth: layout.implicitWidth > 800 ? layout.implicitWidth : 840" \
+              "implicitWidth: layout.implicitWidth > 500 ? layout.implicitWidth : 540"
+          # Brightness service calls bare `brightnessctl` which auto-picks the
+          # first sysfs backlight class — on this Intel+NVIDIA hybrid that
+          # selects the wrong device. Pin to intel_backlight. Important: keep
+          # this LINEAR (no `-e<n>`). The caelestia OSD displays the linear
+          # raw_current/raw_max ratio while writing back the slider's 0..1
+          # value as a percent. Adding `-e4` makes `s 30%` write
+          # `(0.30)^4 · max ≈ 0.8%` of max — i.e. the bar says 30% but the
+          # panel is effectively black.
+          substituteInPlace services/Brightness.qml \
+            --replace-fail \
+              '["brightnessctl", "s", `''${rounded}%`]' \
+              '["brightnessctl", "--device", "intel_backlight", "-n2", "s", `''${rounded}%`]' \
+            --replace-fail \
+              '"echo a b c $(brightnessctl g) $(brightnessctl m)"' \
+              '"echo a b c $(brightnessctl --device intel_backlight g) $(brightnessctl --device intel_backlight m)"'
+        '';
+      });
   # Seed the built-in `gruvbox/soft/dark` scheme — the only shipped palette
   # with a warm orange primary (`ffb878`) and warm dark surfaces (`18120e`).
   # Using a real built-in name means `caelestia wallpaper` /
@@ -201,7 +246,9 @@ let
       explorer = [ "nemo" ];
     };
     services = {
-      useTwelveHourClock = false;
+      # Enum name string: "Auto" (from locale) | "TwelveHour" | "TwentyFourHour".
+      # Replaced the old `useTwelveHourClock` bool.
+      clockFormat = "TwentyFourHour";
       # 5% per keypress — matches the previous `brightnessctl set 5%+` step.
       brightnessIncrement = 0.05;
     };
@@ -312,11 +359,11 @@ let
   # Side effect: any in-shell UI toggles (Control Center, launcher Dark/Light,
   # `caelestia scheme set`) are reverted on the next `nixos-rebuild switch`.
   writeFile = relPath: content: ''
-    file="$HOME/${relPath}"
-    mkdir -p "$(dirname "$file")"
-    ${pkgs.coreutils}/bin/cat > "$file" <<'EOF'
-${content}
-EOF
+        file="$HOME/${relPath}"
+        mkdir -p "$(dirname "$file")"
+        ${pkgs.coreutils}/bin/cat > "$file" <<'EOF'
+    ${content}
+    EOF
   '';
 in
 {

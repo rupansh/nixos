@@ -1,0 +1,35 @@
+diff -ru a/plugin/src/Caelestia/Services/hyprextras.cpp b/plugin/src/Caelestia/Services/hyprextras.cpp
+--- a/plugin/src/Caelestia/Services/hyprextras.cpp
++++ b/plugin/src/Caelestia/Services/hyprextras.cpp
+@@ -4,6 +4,7 @@
+ #include <qjsonarray.h>
+ #include <qlocalsocket.h>
+ #include <qloggingcategory.h>
++#include <qtimer.h>
+ #include <qvariant.h>
+ 
+ #include "hyprdevices.hpp"
+@@ -165,8 +166,21 @@
+ }
+ 
+ void HyprExtras::socketStateChanged(QLocalSocket::LocalSocketState state) {
+-    if (state == QLocalSocket::UnconnectedState && m_socketValid) {
+-        qCWarning(lcHypr) << "socketStateChanged: Hyprland event socket disconnected.";
++    if (state == QLocalSocket::UnconnectedState) {
++        if (m_socketValid) {
++            qCWarning(lcHypr) << "socketStateChanged: Hyprland event socket disconnected, reconnecting.";
++        }
++
++        // Hyprland drops event socket clients whose queue overflows, so reconnect
++        // and resync anything that may have changed while disconnected.
++        QTimer::singleShot(1000, this, [this]() {
++            if (m_socket->state() != QLocalSocket::UnconnectedState) {
++                return;
++            }
++            m_socket->connectToServer(m_eventSocket, QLocalSocket::ReadOnly);
++            refreshOptions();
++            refreshDevices();
++        });
+     }
+ 
+     m_socketValid = state == QLocalSocket::ConnectedState;

@@ -1,0 +1,34 @@
+diff -ru a/src/wayland/hyprland/ipc/connection.cpp b/src/wayland/hyprland/ipc/connection.cpp
+--- a/src/wayland/hyprland/ipc/connection.cpp
++++ b/src/wayland/hyprland/ipc/connection.cpp
+@@ -17,6 +17,7 @@
+ #include <qproperty.h>
+ #include <qqml.h>
+ #include <qtenvironmentvariables.h>
++#include <qtimer.h>
+ #include <qtmetamacros.h>
+ #include <qtypes.h>
+ #include <qvariant.h>
+@@ -109,8 +110,20 @@
+ 		this->eventReader.setDevice(&this->eventSocket);
+ 		qCInfo(logHyprlandIpc) << "Hyprland event socket connected.";
+ 		emit this->connected();
+-	} else if (state == QLocalSocket::UnconnectedState && this->valid) {
+-		qCWarning(logHyprlandIpc) << "Hyprland event socket disconnected.";
++	} else if (state == QLocalSocket::UnconnectedState) {
++		if (this->valid) {
++			qCWarning(logHyprlandIpc) << "Hyprland event socket disconnected, reconnecting.";
++		}
++
++		// Hyprland drops event socket clients whose queue overflows (e.g. after a
++		// short GUI thread stall), so reconnect and resync everything we missed.
++		QTimer::singleShot(1000, this, [this]() {
++			if (this->eventSocket.state() != QLocalSocket::UnconnectedState) return;
++			this->eventSocket.connectToServer(this->mEventSocketPath, QLocalSocket::ReadOnly);
++			this->refreshMonitors(true);
++			this->refreshWorkspaces(true);
++			this->refreshToplevels();
++		});
+ 	}
+ 
+ 	this->valid = state == QLocalSocket::ConnectedState;
