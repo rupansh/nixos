@@ -11,8 +11,10 @@
   gtk = {
     enable = true;
     theme = {
-      package = pkgs.nordic;
-      name = "Nordic";
+      # closest surviving match to the removed Nordic theme after the
+      # nixpkgs gtk-engine-murrine purge (prebuilt, no murrine dependency)
+      package = pkgs.catppuccin-gtk;
+      name = "catppuccin-frappe-blue-standard";
     };
 
     iconTheme = {

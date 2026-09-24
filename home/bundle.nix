@@ -14,8 +14,12 @@
     ./caelestia.nix
     ./spicetify.nix
     ./obs.nix
+    ./mcp.nix
     ./claude-code.nix
+    ./codex.nix
+    ./opencode.nix
     ./mpv.nix
+    ./devenv.nix
   ];
 
   home = {

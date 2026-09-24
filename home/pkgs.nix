@@ -35,7 +35,6 @@
     # dev
     nil
     nixfmt
-    devenv
 
     # virt
     gnome-boxes

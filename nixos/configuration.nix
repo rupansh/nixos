@@ -25,6 +25,7 @@
     ./nix-ld.nix
     ./ssh.nix
     ./virtualisation.nix
+    ./nfs.nix
   ];
 
   # Bootloader.

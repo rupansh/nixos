@@ -27,10 +27,25 @@
 
   programs.rog-control-center = {
     enable = true;
-    autoStart = true;
+    # NOT the module's autoStart: asusctl 6.4.0 renamed its desktop file to
+    # `org.opengamingcollective.rog-control-center.desktop`, but nixpkgs'
+    # rog-control-center module still calls `makeAutostartItem` with
+    # `name = "rog-control-center"`, which resolves to the pre-rename path and
+    # fails the build with `cp: cannot stat .../rog-control-center.desktop`.
+    # Build the autostart item below instead, using `srcPrefix` for the new
+    # name. Drop this once the module upstream catches up.
+    autoStart = false;
   };
 
-  # supergfxd uses lsof to enumerate/kill processes holding /dev/nvidia* before
-  # unloading the driver; it warns at mode-switch time when the binary is missing.
-  environment.systemPackages = [ pkgs.lsof ];
+  environment.systemPackages = [
+    # supergfxd uses lsof to enumerate/kill processes holding /dev/nvidia* before
+    # unloading the driver; it warns at mode-switch time when the binary is missing.
+    pkgs.lsof
+
+    (pkgs.makeAutostartItem {
+      name = "rog-control-center";
+      package = pkgs.asusctl;
+      srcPrefix = "org.opengamingcollective.";
+    })
+  ];
 }

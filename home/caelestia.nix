@@ -205,12 +205,48 @@ let
       # 5% per keypress — matches the previous `brightnessctl set 5%+` step.
       brightnessIncrement = 0.05;
     };
-    bar.status = {
-      showBattery = true;
-      showBluetooth = true;
-      showNetwork = true;
-      showWifi = true;
-    };
+    # Status icons are an ordered entry list of `{ id, enabled }` maps. The old
+    # `bar.status.show*` boolean group was removed upstream (the BarStatus
+    # config object is gone; BarConfig now declares
+    # `CONFIG_LIST(EntryList, statusIcons, ...)`). Leaving the dead key here
+    # made the settings loader record an "Unknown option bar.status"
+    # diagnostic, and the shell toasts "Config loaded with 1 issue." on every
+    # login (plugin/src/Caelestia/Config/rootnodes.cpp, `detail::loaded`) —
+    # it also meant these four toggles were silently dropped.
+    #
+    # Valid ids: lockStatus, audio, microphone, kbLayout, network, bluetooth,
+    # battery. There is no separate wifi entry — `network` covers it. Written
+    # as a bare JSON array; the `.values` key is a QML-side accessor only.
+    bar.statusIcons = [
+      {
+        id = "lockStatus";
+        enabled = true;
+      }
+      {
+        id = "audio";
+        enabled = false;
+      }
+      {
+        id = "microphone";
+        enabled = false;
+      }
+      {
+        id = "kbLayout";
+        enabled = false;
+      }
+      {
+        id = "network";
+        enabled = true;
+      }
+      {
+        id = "bluetooth";
+        enabled = true;
+      }
+      {
+        id = "battery";
+        enabled = true;
+      }
+    ];
     notifs = {
       # Auto-dismiss after 5s — swaync's default behaviour.
       expire = true;
