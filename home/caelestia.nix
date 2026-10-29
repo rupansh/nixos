@@ -7,6 +7,15 @@
 let
   inherit (pkgs.stdenv.hostPlatform) system;
 
+  # Upstream sets its fallback version outside `env`, so nixpkgs' structured
+  # Python derivations don't export it to hatch-vcs. Flake sources have no
+  # .git metadata; export its fallback before invoking the build backend.
+  caelestiaCli = caelestia-shell.inputs.caelestia-cli.packages.${system}.default.overrideAttrs (old: {
+    preBuild = (old.preBuild or "") + ''
+      export SETUPTOOLS_SCM_PRETEND_VERSION=1
+    '';
+  });
+
   # Hyprland drops any event-socket (socket2) client that falls 64 events
   # behind (EventManager.cpp, "overflowed event queue, removing") — a brief
   # GUI-thread stall in the shell is enough. Neither quickshell's HyprlandIpc
@@ -52,7 +61,7 @@ let
       rev = caelestia-shell.rev or caelestia-shell.dirtyRev;
       stdenv = pkgs.clangStdenv;
       inherit quickshell;
-      caelestia-cli = caelestia-shell.inputs.caelestia-cli.packages.${system}.default;
+      caelestia-cli = caelestiaCli;
       m3shapes = caelestia-shell.inputs.m3shapes.packages.${system}.default;
       withCli = true;
     }).overrideAttrs
@@ -376,7 +385,10 @@ in
   programs.caelestia = {
     enable = true;
     package = caelestiaShell;
-    cli.enable = true;
+    cli = {
+      enable = true;
+      package = caelestiaCli;
+    };
 
     systemd = {
       enable = true;

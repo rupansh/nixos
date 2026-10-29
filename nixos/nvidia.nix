@@ -19,7 +19,7 @@
     dynamicBoost.enable = true;
   };
 
-  hardware.nvidia-container-toolkit.enable = true;
+  #hardware.nvidia-container-toolkit.enable = true;
 
   boot.kernelParams = [
     "i915.enable_dpcd_backlight=1"

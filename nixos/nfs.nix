@@ -9,6 +9,13 @@
 # password, which is what makes it work from a plain user shell, a keybind
 # or a launcher.
 #
+# Stopping it must never wait on the desktop. `-l -f` alone doesn't get
+# there: the lazy detach returns, but the kernel's final writeback and
+# NFSv4 session teardown still block on a hard mount whose server has gone
+# away. `sd-pc-teardown.service` (bound to the mount, stopped right before
+# it) closes that gap with the NFS client's sysfs `shutdown` knob, which
+# makes every outstanding and future RPC on the mount fail immediately.
+#
 # The mount point itself is created (root-owned, 0755) by systemd the first
 # time the unit starts. That is intentional: while the share is unmounted
 # nothing can accidentally be written into the placeholder directory.
@@ -49,9 +56,8 @@ let
         findmnt --mountpoint "$mp" >/dev/null
       }
 
-      # TCP probe of the NFS port. A hard NFS mount retries forever against a
-      # server that has gone away, so both directions check first and take
-      # the fast path when the desktop is off / off the tailnet.
+      # TCP probe of the NFS port, so mounting takes the fast path when the
+      # desktop is off / off the tailnet instead of mount.nfs retrying.
       server_reachable() {
         timeout 3 "$BASH" -c "exec 3<>/dev/tcp/$host/2049" 2>/dev/null
       }
@@ -87,32 +93,15 @@ let
           report "not mounted"
           return 0
         fi
-        if server_reachable; then
-          # Flush while the server is up: the unit unmounts with `-f`, which
-          # aborts in-flight RPCs, and we don't want that to eat writes that
-          # were merely still sitting in the page cache.
-          sync -f "$mp"
-          if systemctl stop "$mp"; then
-            report "unmounted $mp"
-            return 0
-          fi
+        # Flushing, and cutting the share loose when the desktop is gone,
+        # happen in sd-pc-teardown.service's ExecStop, which every stop of
+        # the mount (this, a plain systemctl stop, shutdown) goes through.
+        if systemctl stop "$mp"; then
+          report "unmounted $mp"
+        else
           report "unmount failed — see: systemctl status $mp"
           return 1
         fi
-        # Server gone. The lazy+forced unmount detaches the tree right away;
-        # whatever is left of the teardown can only finish (or hit the unit's
-        # TimeoutSec) in the background, so don't wait on the job — just on
-        # the mount point disappearing.
-        systemctl stop --no-block "$mp"
-        for _ in $(seq 20); do
-          is_mounted || break
-          sleep 0.25
-        done
-        if is_mounted; then
-          report "unmount failed — see: systemctl status $mp"
-          return 1
-        fi
-        report "detached $mp — $host is unreachable, pending writes could not be flushed"
       }
 
       case "''${1:-toggle}" in
@@ -133,6 +122,79 @@ let
       esac
     '';
   };
+
+  # ExecStop of sd-pc-teardown.service; runs while the share is still
+  # mounted and (see the mount's `after`) while tailscaled is still up.
+  # Leaves the mount in a state where the umount that follows returns
+  # immediately, whether or not the desktop is still there.
+  sd-pc-teardown = pkgs.writeShellApplication {
+    name = "sd-pc-teardown";
+    runtimeInputs = [
+      config.systemd.package
+      config.services.tailscale.package
+      pkgs.coreutils
+      pkgs.gnugrep
+      pkgs.util-linux
+      pkgs.jq
+    ];
+    text = ''
+      mp=${mountPoint}
+
+      # All of this reads /proc/self/mountinfo only: anything that stat()s
+      # the mount point could itself hang on a dead server.
+      if ! mnt=$(findmnt -nro MAJ:MIN,OPTIONS --mountpoint "$mp"); then
+        exit 0
+      fi
+      read -r dev opts <<<"$mnt"
+      # Empty if absent, which peer_online then treats as unreachable.
+      addr=$(grep -oP '(^|,)addr=\K[^,]+' <<<"$opts" || true)
+      knob=/sys/fs/nfs/$dev/shutdown
+
+      # Local query to tailscaled; no network round trip. Fails fast when
+      # tailscaled is stopped, which means there is no path to the server.
+      peer_online() {
+        timeout 1 tailscale status --json 2>/dev/null |
+          jq -e --arg ip "$addr" \
+            'any(.Peer[]?; (.TailscaleIPs | index($ip)) and .Online)' \
+            >/dev/null
+      }
+
+      # A real round trip, for when there's time to be sure.
+      server_reachable() {
+        timeout 2 "$BASH" -c "exec 3<>/dev/tcp/$addr/2049" 2>/dev/null
+      }
+
+      cut_loose() {
+        echo "$1 — shutting down the NFS client; unflushed writes are dropped"
+        echo 1 >"$knob"
+      }
+
+      if [ "$(systemctl is-system-running)" = stopping ]; then
+        # Shutdown. Everything that could have had the share open has
+        # exited by now, and NFS flushes dirty data on close(), so there is
+        # almost never anything left to write: a global sync (which, unlike
+        # `sync -f`, doesn't open the mount point) then returns at once. It
+        # is only worth even that when the desktop can possibly receive it,
+        # and it is capped so a stale "online" can't stall poweroff.
+        if peer_online; then
+          timeout -s KILL 3 sync || echo "flush to $addr stalled"
+        fi
+        # Always, even when the flush succeeded: the unmount's NFSv4 session
+        # teardown is more RPCs to a server that may be halfway gone, and
+        # skipping it just leaves the desktop to expire our lease.
+        echo 1 >"$knob"
+        exit 0
+      fi
+
+      # Manual stop: the user may still be writing to the share (the unmount
+      # is lazy), so only cut it loose when the desktop really can't answer.
+      if ! peer_online || ! server_reachable; then
+        cut_loose "$addr is unreachable"
+      elif ! timeout -s KILL 60 sync -f "$mp"; then
+        cut_loose "flush to $addr stalled"
+      fi
+    '';
+  };
 in
 {
   # Normally derived from `fileSystems.*.fsType`; this is what makes the
@@ -146,22 +208,40 @@ in
       where = mountPoint;
       type = "nfs";
       options = "nfsvers=4.2";
+      # The server is only reachable over the tailnet, but the default network
+      # mount deps only order us after network(-online).target, which
+      # tailscaled isn't part of. Without this, shutdown stops tailscaled in
+      # parallel with the unmount and the route to the server vanishes first.
+      # Stop order is start order reversed, so this (and the teardown service,
+      # which is ordered after us) runs while the tailnet is still up.
+      after = [ "tailscaled.service" ];
       mountConfig = {
-        # Stop = `umount -l -f`. A hard NFS mount whose server has vanished
-        # otherwise blocks in umount(2) until TimeoutSec, on shutdown too.
-        # Lazy detaches the mount point immediately; force aborts the RPCs
-        # any process stuck on it is waiting for (they get EIO instead of
-        # sitting in D state until the server returns). `sd-pc umount`
-        # syncfs()es first when the server is reachable so the force never
-        # discards pending writes on a healthy share.
+        # Stop = `umount -l -f`: detach the mount point even if something
+        # still has files open on it, and abort RPCs in flight. After the
+        # teardown service has set the shutdown knob this is instant.
         LazyUnmount = true;
         ForceUnmount = true;
-        # Caps both mount.nfs against a server that stopped answering
-        # mid-probe and a teardown that got stuck anyway. Default is 90s.
+        # Backstop only; nothing above should ever get near it.
         TimeoutSec = "30s";
       };
     }
   ];
+
+  systemd.services.sd-pc-teardown = {
+    description = "Flush or cut loose the sd-pc NFS share before unmounting";
+    # Started with the mount, stopped with it (BindsTo) and, being ordered
+    # after it, stopped *before* the unmount runs.
+    wantedBy = [ unit ];
+    bindsTo = [ unit ];
+    after = [ unit ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStop = "${sd-pc-teardown}/bin/sd-pc-teardown";
+      # Its own caps are 1+3s at shutdown and 1+2+60s otherwise.
+      TimeoutStopSec = "90s";
+    };
+  };
 
   security.polkit.extraConfig = ''
     polkit.addRule(function (action, subject) {
