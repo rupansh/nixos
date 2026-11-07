@@ -37,7 +37,7 @@
   boot.kernelPackages = pkgs.linuxPackages;
 
   # initrd
-  boot.initrd.systemd.enable = true;
+  #boot.initrd.systemd.enable = true;
 
   networking.hostName = "nix-rupansh"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.

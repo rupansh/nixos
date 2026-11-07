@@ -200,6 +200,9 @@ in
   # Normally derived from `fileSystems.*.fsType`; this is what makes the
   # NixOS NFS module wire up rpcbind / nfs-utils / nfs-client.target.
   boot.supportedFilesystems.nfs = true;
+  # The NFSv4 client is a separate module, and this system has kernel module
+  # autoloading disabled. Load it at boot before an on-demand mount is tried.
+  boot.kernelModules = [ "nfsv4" ];
 
   systemd.mounts = [
     {

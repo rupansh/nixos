@@ -20,15 +20,15 @@ let
   # drop this and go back to a plain `ocPkgs.opencode`. To recompute, build
   # `opencode.packages.<system>.node_modules_updater` — it deliberately uses
   # `lib.fakeHash` so the build failure reports the correct value.
-  #node_modules = ocPkgs.node_modules_updater.override {
-  #  hash = "sha256-Ppc2Kgb9D9xdkrNMyQgPS6rn/zU5zMqMKvAmrFCj1zQ=";
-  #};
+  node_modules = ocPkgs.node_modules_updater.override {
+    hash = "sha256-HdPEt24429gpl2SBQFZyT8KlqbFp2d9H3bh37tlzuTM=";
+  };
 in
 {
   programs.opencode = {
     enable = true;
     # latest from github:anomalyco/opencode instead of nixpkgs
-    #package = ocPkgs.opencode.override { inherit node_modules; };
+    package = ocPkgs.opencode.override { inherit node_modules; };
     enableMcpIntegration = true;
 
     extraPackages = with pkgs; [
