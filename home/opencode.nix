@@ -21,7 +21,7 @@ let
   # `opencode.packages.<system>.node_modules_updater` — it deliberately uses
   # `lib.fakeHash` so the build failure reports the correct value.
   node_modules = ocPkgs.node_modules_updater.override {
-    hash = "sha256-HdPEt24429gpl2SBQFZyT8KlqbFp2d9H3bh37tlzuTM=";
+    hash = "sha256-c7NjSzk6mN2q96NGrg5WNDd0ZeunBJUahdnCnueLrDw=";
   };
 in
 {
@@ -30,6 +30,25 @@ in
     # latest from github:anomalyco/opencode instead of nixpkgs
     package = ocPkgs.opencode.override { inherit node_modules; };
     enableMcpIntegration = true;
+
+    settings.provider.strata = {
+      npm = "@ai-sdk/openai-compatible";
+      name = "Strata (local)";
+      options = {
+        baseURL = "http://127.0.0.1:8080/v1";
+        apiKey = "strata-local";
+      };
+      models."deepseek-v4.1-flash" = {
+        name = "DeepSeek v4.1 Flash 1017 Atomic Chat";
+        tool_call = true;
+        reasoning = true;
+        limit = {
+          context = 262144;
+          input = 258048;
+          output = 32768;
+        };
+      };
+    };
 
     extraPackages = with pkgs; [
       uv
