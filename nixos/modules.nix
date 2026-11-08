@@ -1,3 +1,4 @@
+{ pkgs, ... }:
 {
   programs.hyprland = {
     enable = true;
@@ -11,6 +12,9 @@
     remotePlay.openFirewall = true;
     dedicatedServer.openFirewall = true;
     localNetworkGameTransfers.openFirewall = true;
+    extraCompatPackages = [
+      pkgs.dwproton-bin
+    ];
   };
 
   programs.virt-manager.enable = true;
