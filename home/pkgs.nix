@@ -19,7 +19,7 @@
     vlc
     stremio-linux-shell
     unzip
-    brave
+    #brave
     usbutils
     popsicle
     btop
