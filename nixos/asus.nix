@@ -14,7 +14,7 @@
       # the GUI/CLI can no longer write back: switch modes by editing `mode` here
       # and rebuilding.
       settings = {
-        mode = "Integrated";
+        mode = "Hybrid";
         vfio_enable = false;
         vfio_save = false;
         always_reboot = true;
